@@ -2,7 +2,13 @@ package logManager
 
 import (
 	"fmt"
+	//"https://pkg.go.dev/go.uber.org/zap"
 	"log"
+	"log/slog"
+
+	"github.com/rs/zerolog"
+
+	"go.uber.org/zap"
 )
 
 /*
@@ -14,9 +20,10 @@ type LogManager struct{
 	whatMsg string
 	whereMsg string // this should try to give context about at which module/package, class, method the erro was originated
 	whoMsg string
+	trace any
 	//whenMsg string - this is  not need to pass because all log library prints the timestamp
 	Verbose bool // default to false, when set to true, it prints the stackTrace fo the error
-	Logger interface{}
+	Logger any
 }
 
 func Default() *LogManager{
@@ -67,30 +74,205 @@ func (logman *LogManager)What(msg string) *LogManager{
 
 }
 
-func (logman *LogManager) Error () error{
+func (logman *LogManager)PrintStackTrace(msg any) *LogManager{
 
-	/*Error structure example:
-	*(what) Enable to add the item on the cart, (why) because there is no stock for this item, (where) the error accoured during validation stock by the validation method on (who) github.com/module/package/struct/method
-	*/
-	generateMsg := fmt.Sprintf("(what)%s, (why) because %s, (where) in %s, (who) on %s ", logman.whatMsg, logman.whyMsg, logman.whereMsg, logman.whoMsg)
-	logman.errorLogFactory(generateMsg)
-	return nil
+	logman.trace = msg;
+
+	return logman;
+
 }
 
+
+//Generates the formated message
+func (logman *LogManager) generateFormatedMsg() string {
+
+	generateMsg := fmt.Sprintf("{'what' : '%s', 'why' : 'because %s', 'where' : 'in %s', 'who' : 'on %s' ", logman.whatMsg, logman.whyMsg, logman.whereMsg, logman.whoMsg)
+	
+	if logman.trace == nil{
+		generateMsg = fmt.Sprintf("%s}", generateMsg)
+	}else{
+		generateMsg = fmt.Sprintf("%s, 'stackTrace' : '%s'}", generateMsg, logman.trace)
+	}
+
+	return generateMsg;
+
+}
+
+
+
+//Send msg to factory which sends to the specified log library
+func (logman *LogManager) Error (){
+
+	logman.errorLogFactory(logman.generateFormatedMsg())
+}
+
+//Send msg to factory which sends to the specified log library
+func (logman *LogManager) Info (){
+
+	logman.infoLogFactory(logman.generateFormatedMsg())
+}
+
+//Send msg to factory which sends to the specified log library
+func (logman *LogManager) Warn (){
+
+	logman.warningLogFactory(logman.generateFormatedMsg())
+}
+
+
+//Send msg to factory which sends to the specified log library
+func (logman *LogManager) Debug (){
+	logman.debugLogFactory(logman.generateFormatedMsg())
+}
+
+
+
+//This factory function generate error message acording to the specified log library by asserting the log library passed through initialization
 func (logman *LogManager) errorLogFactory(errormsg string){
 	logger := logman.Logger;
 
-	myDefault, ok := logger.(*log.Logger)
+	log, ok := logger.(*log.Logger)
 
 	if ok  {
-		myDefault.Fatal(errormsg)
+		log.Println(errormsg)
+		return
 	}
 
-	println("No looger found")
+	zapLog, ok:= logger.(*zap.Logger)
+	if ok  {
+		zapLog.Error(errormsg)
+		return
+	}
+
+	slog, ok := logger.(*slog.Logger)
+
+	if ok {
+		slog.Error(errormsg)
+		return
+	}
+
+	zlog, ok := logger.(*zerolog.Logger)
+
+	if ok{
+		zlog.Error().Msg(errormsg)
+		return
+	}
+
+	println("No looger or no supported log library was found")
 
 	// Todo, verify for others loggers libary
 }
 
-func Package(){
-	println("Hello world from package")
+
+
+//This factory function generate information message acording to the specified log library by asserting the log library passed through initialization
+func (logman *LogManager) infoLogFactory(errormsg string){
+	logger := logman.Logger;
+
+	log, ok := logger.(*log.Logger)
+
+	if ok  {
+		log.Println(errormsg)
+		return
+	}
+
+	zapLog, ok:= logger.(*zap.Logger)
+	if ok  {
+		zapLog.Info(errormsg)
+		return
+	}
+
+	slog, ok := logger.(*slog.Logger)
+
+	if ok {
+		slog.Info(errormsg)
+		return
+	}
+
+	zlog, ok := logger.(*zerolog.Logger)
+
+	if ok{
+		zlog.Info().Msg(errormsg)
+		return
+	}
+
+	println("No looger or no supported log library was found")
+
+	// Todo, verify for others loggers libary
 }
+
+
+//This factory function generate warning message acording to the specified log library by asserting the log library passed through initialization
+func (logman *LogManager) warningLogFactory(errormsg string){
+	logger := logman.Logger;
+
+	log, ok := logger.(*log.Logger)
+
+	if ok  {
+		log.Println(errormsg)
+		return
+	}
+
+	zapLog, ok:= logger.(*zap.Logger)
+	if ok  {
+		zapLog.Warn(errormsg)
+		return
+	}
+
+	slog, ok := logger.(*slog.Logger)
+
+	if ok {
+		slog.Warn(errormsg)
+		return
+	}
+
+	zlog, ok := logger.(*zerolog.Logger)
+
+	if ok{
+		zlog.Warn().Msg(errormsg)
+		return
+	}
+
+	println("No looger or no supported log library was found")
+
+	// Todo, verify for others loggers libary
+}
+
+
+//This factory function generate debug message acording to the specified log library by asserting the log library passed through initialization
+func (logman *LogManager) debugLogFactory(errormsg string){
+	logger := logman.Logger;
+
+	log, ok := logger.(*log.Logger)
+
+	if ok  {
+		log.Println(errormsg)
+		return
+	}
+
+	zapLog, ok:= logger.(*zap.Logger)
+	if ok  {
+		zapLog.Debug(errormsg)
+		return
+	}
+
+	slog, ok := logger.(*slog.Logger)
+
+	if ok {
+		slog.Debug(errormsg)
+		return
+	}
+
+	zlog, ok := logger.(*zerolog.Logger)
+
+	if ok{
+		zlog.Debug().Msg(errormsg)
+		return
+	}
+
+	println("No looger or no supported log library was found")
+
+	// Todo, verify for others loggers libary
+}
+
+
+
