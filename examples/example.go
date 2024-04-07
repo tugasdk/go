@@ -20,7 +20,7 @@ func WithLog(){
 
 	log:= loggerManager.New(logger, true)
 	
-	log.What("Payment failed").Why("System shows not balance was available").Where("When processing the transaction").Who("path/to/error/method").Info();
+	log.What("Payment failed").Why("User has no enough balance in account").Where("transaction payment  phase").Who("e-commmerce.payment.pay method").Info();
 	log.What("Payment failed").Why("System shows not balance was available").Where("When processing the transaction").Who("path/to/error/method").Warn();
 	log.What("Payment failed").Why("System shows not balance was available").Where("When processing the transaction").Who("path/to/error/method").Error();
 	log.What("Payment failed").Why("System shows not balance was available").Where("When processing the transaction").Who("path/to/error/method").Debug();
@@ -33,7 +33,7 @@ func WithSlog(){
 
 	log:= loggerManager.New(logger, true)
 	
-	log.What("Payment failed").Why("System shows not balance was available").Where("When processing the transaction").Who("path/to/error/method").Info();
+	log.What("Payment failed").Why("User has no enough balance in account").Where("transaction payment  phase").Who("e-commmerce.payment.pay method").Info();
 	log.What("Payment failed").Why("System shows not balance was available").Where("When processing the transaction").Who("path/to/error/method").Warn();
 	log.What("Payment failed").Why("System shows not balance was available").Where("When processing the transaction").Who("path/to/error/method").Error();
 	log.What("Payment failed").Why("System shows not balance was available").Where("When processing the transaction").Who("path/to/error/method").Debug();
